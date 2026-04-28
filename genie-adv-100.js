@@ -1,5 +1,5 @@
 /* ============================================================
-   GENIE Startup Advisor — Chat UI v1.1.0
+   GENIE Startup Advisor — Chat UI - v1.2.0 - History rename
    Paste this script into your page (before </body>).
    Requires: nothing (marked.js is injected automatically)
    ============================================================ */
@@ -60,6 +60,7 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
     .genie-chat-item-date{font-size:11px;color:var(--text3);margin-top:2px}
     .genie-chat-item-del{float:right;background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 2px;display:none}
     .genie-chat-item:hover .genie-chat-item-del{display:inline}
+    .genie-rename-input{width:100%;font-size:13px;font-weight:500;color:var(--text);background:var(--bg);border:1px solid var(--accent);border-radius:4px;padding:1px 5px;outline:none;font-family:inherit}
     #genie-sidebar-footer{padding:12px 16px;border-top:1px solid var(--border)}
     #genie-theme-btn{background:none;border:1px solid var(--border2);color:var(--text2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;width:100%}
     #genie-theme-btn:hover{background:var(--bg3)}
@@ -227,15 +228,54 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
       div.className = 'genie-chat-item' + (chat.id === activeChatId ? ' active' : '');
       div.innerHTML = `
         <button class="genie-chat-item-del" title="Delete" data-id="${chat.id}">✕</button>
-        <div class="genie-chat-item-title">${escHtml(chat.title)}</div>
+        <div class="genie-chat-item-title" title="Double-click to rename">${escHtml(chat.title)}</div>
         <div class="genie-chat-item-date">${formatDate(chat.updatedAt)}</div>
       `;
+
+      // single-click: load chat
       div.addEventListener('click', e => {
         if (e.target.dataset.id) { deleteChat(e.target.dataset.id); return; }
+        if (e.target.classList.contains('genie-chat-item-title')) return; // let dblclick handle
         loadChat(chat.id);
       });
+
+      // double-click on title: inline rename
+      const titleEl = div.querySelector('.genie-chat-item-title');
+      titleEl.addEventListener('dblclick', e => {
+        e.stopPropagation();
+        startRename(chat, titleEl);
+      });
+
       list.appendChild(div);
     });
+  }
+
+  function startRename(chat, titleEl) {
+    const prev = chat.title;
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.value = prev;
+    inp.className = 'genie-rename-input';
+    titleEl.replaceWith(inp);
+    inp.focus();
+    inp.select();
+
+    function commit() {
+      const next = inp.value.trim();
+      chat.title = next || prev;
+      saveChats();
+      renderSidebar();
+    }
+    function cancel() {
+      chat.title = prev;
+      renderSidebar();
+    }
+
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter')  { e.preventDefault(); commit(); }
+      if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+    });
+    inp.addEventListener('blur', commit);
   }
 
   // ── CHAT MANAGEMENT ────────────────────────────────────────
