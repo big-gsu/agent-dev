@@ -1,5 +1,5 @@
 /* ============================================================
-   GENIE Startup Advisor — Chat UI - v1.2.0 - History rename
+   GENIE Startup Advisor — Chat UI - v1.3.0 - Mobile responsive
    Paste this script into your page (before </body>).
    Requires: nothing (marked.js is injected automatically)
    ============================================================ */
@@ -117,6 +117,8 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
 
   // ── INJECT HTML INTO BODY ──────────────────────────────────
   document.body.innerHTML = `
+    <div id="genie-backdrop"></div>
+
     <div id="genie-sidebar">
       <div id="genie-sidebar-header">
         <h2>Conversations</h2>
@@ -133,6 +135,9 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
 
     <div id="genie-main">
       <div id="genie-topbar">
+        <button id="genie-menu-btn" title="Menu" aria-label="Open sidebar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
         <img src="https://raw.githubusercontent.com/big-gsu/gfx/main/chaticon-g1.png" width="32" height="32" style="object-fit:contain;border-radius:4px"/>
         <h1 id="genie-chat-title">${ASSISTANT}</h1>
       </div>
@@ -294,6 +299,11 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
     renderSidebar();
     const msgs = document.getElementById('genie-messages');
     msgs.scrollTop = msgs.scrollHeight;
+    // close sidebar on mobile after selecting a chat
+    if (window.innerWidth <= 768) {
+      document.getElementById('genie-sidebar').classList.remove('open');
+      document.getElementById('genie-backdrop').classList.remove('open');
+    }
   }
 
   function deleteChat(id) {
@@ -509,6 +519,21 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
       e.preventDefault();
       [...e.dataTransfer.files].forEach(f => addPendingFile(f));
     });
+
+    // ── Sidebar toggle (mobile) ──
+    const sidebar  = document.getElementById('genie-sidebar');
+    const backdrop = document.getElementById('genie-backdrop');
+    const menuBtn  = document.getElementById('genie-menu-btn');
+
+    function openSidebar()  { sidebar.classList.add('open');  backdrop.classList.add('open');  }
+    function closeSidebar() { sidebar.classList.remove('open'); backdrop.classList.remove('open'); }
+
+    menuBtn.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+    backdrop.addEventListener('click', closeSidebar);
+
+    // Close sidebar on chat load (mobile)
+    const _origLoadChat = loadChat;
+    window._genieLoadChat = id => { _origLoadChat(id); if (window.innerWidth <= 768) closeSidebar(); };
 
     document.getElementById('genie-new-chat-btn').addEventListener('click', newChat);
     document.getElementById('genie-theme-btn').addEventListener('click', () => {
