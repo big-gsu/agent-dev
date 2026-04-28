@@ -1,5 +1,5 @@
 /* ============================================================
-   GENIE Startup Advisor — Chat UI
+   GENIE Startup Advisor — Chat UI v1.1.0
    Paste this script into your page (before </body>).
    Requires: nothing (marked.js is injected automatically)
    ============================================================ */
@@ -393,9 +393,9 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
       })));
 
       const payload = {
-        message: text,
-        chatId: activeChatId,
-        history: chat.messages.slice(0,-1).map(m => ({role:m.role, content:m.content})),
+        chatInput: text,
+        sessionId: activeChatId,
+        action: 'sendMessage',
         files: filesPayload,
         timestamp: new Date().toISOString()
       };
@@ -411,7 +411,7 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
         const ct = resp.headers.get('content-type') || '';
         if (ct.includes('application/json')) {
           const data = await resp.json();
-          reply = data.output || data.message || data.reply || data.text || data.response || JSON.stringify(data);
+          reply = data.output || data.text || data.message || data.reply || data.response || JSON.stringify(data);
         } else {
           reply = await resp.text();
         }
