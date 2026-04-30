@@ -255,7 +255,7 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
             </button>
           </div>
           <div id="genie-input-hint">
-            <a href="https://www.instayllc.com" style="color:inherit;text-decoration:none;cursor:pointer">Powered by INSTAY LLC</a>
+            <a href="https://www.georgiasouthern.edu/research/centers/business-innovation-group" style="color:inherit;text-decoration:none;cursor:pointer">Powered by BIG</a>
           </div>
         </div>
       </div>
