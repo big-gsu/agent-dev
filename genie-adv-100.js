@@ -1,5 +1,5 @@
 /* ============================================================
-   GENIE Startup Advisor — Chat UI - v1.4.0 - Mobile bug fix
+   GENIE Startup Advisor — Chat UI - v1.5.0 - Prompt box layout
    Paste this script into your page (before </body>).
    ============================================================ */
 
@@ -11,7 +11,7 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
 
   const STORAGE_KEY = 'pda_chats';
   const THEME_KEY   = 'pda_theme';
-  const ASSISTANT   = 'GENIE Startup Advisor';
+  const ASSISTANT   = 'GENIE STARTUP ADVISOR';
   const MARKED_CDN  = 'https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js';
 
   let chats        = [];
@@ -167,13 +167,13 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
     #genie-attach-preview-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
     .genie-pending-chip{background:var(--accent-bg);color:var(--accent);border-radius:6px;padding:3px 8px;font-size:12px;display:flex;align-items:center;gap:5px}
     .genie-pending-chip button{background:none;border:none;cursor:pointer;color:inherit;padding:0;font-size:13px;line-height:1}
-    #genie-input-box{display:flex;align-items:flex-end;gap:8px;border:1px solid var(--border2);border-radius:var(--radius);padding:8px 10px;background:var(--bg2);transition:border-color .15s}
+    #genie-input-box{display:flex;align-items:center;gap:8px;border:1px solid var(--border2);border-radius:var(--radius);padding:0 10px;background:var(--bg2);transition:border-color .15s;min-height:48px}
     #genie-input-box:focus-within{border-color:var(--accent)}
-    #genie-msg-input{flex:1;background:none;border:none;outline:none;font-size:16px;color:var(--text);resize:none;max-height:120px;line-height:1.5;font-family:inherit}
+    #genie-msg-input{flex:1;background:none;border:none;outline:none;font-size:16px;color:var(--text);resize:none;line-height:1.5;font-family:inherit;overflow-y:hidden;max-height:160px;padding:12px 0;box-sizing:border-box;display:block;vertical-align:middle}
     #genie-msg-input::placeholder{color:var(--text3)}
-    #genie-file-btn{background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:background .15s,color .15s;min-width:44px;min-height:44px}
+    #genie-file-btn{background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:background .15s,color .15s;min-width:44px;min-height:44px;flex-shrink:0;align-self:center}
     #genie-file-btn:hover{background:var(--bg3);color:var(--text)}
-    #genie-send-btn{background:var(--accent);color:#fff;width:44px;height:44px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    #genie-send-btn{background:var(--accent);color:#fff;width:36px;height:36px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;align-self:center}
     #genie-send-btn:hover{opacity:.85}
     #genie-send-btn:disabled{opacity:.4;cursor:not-allowed}
     #genie-file-input{display:none}
@@ -225,18 +225,18 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
             <div class="genie-icon">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </div>
-            <h2>Hello! I'm Al, your startup advisor with the GENIE program.</h2>
+            <h2>Hello, I'm your startup advisor with the GENIE program.</h2>
             <p>I can help you with starting or growing your business here in Georgia. My support includes:</p>
             <ul style="text-align:center;list-style:none;margin:20px auto 20px;max-width:420px;line-height:1.8;font-size:16px;color:inherit">
-              <li>• Guiding you through the business startup process (from idea validation to early customer acquisition).</li>
+              <li>• Guiding you through the startup process, from idea validation to early customer acquisition</li>
               <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
-              <li>• Offering step-by-step instructions and practical templates.</li>
+              <li>• Providing step-by-step guidance and practical templates</li>
               <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
-              <li>• Explaining legal, financial, and organizational requirements specific to Georgia.</li>
+              <li>• Explaining legal, financial, and organizational requirements specific to Georgia</li>
               <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
-              <li>• Recommending local and state resources, including support programs and educational opportunities.</li>
+              <li>• Recommending local and state resources, including support programs and educational opportunities</li>
               <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
-              <li>• Helping you understand and access resources through organizations like the Business Innovation Group (BIG) at Georgia Southern University.</li>
+              <li>• Helping you access resources through organizations such as the Business Innovation Group (BIG) at Georgia Southern University</li>
             </ul>
             <p>To get started, could you share where you are in your startup journey? Or feel free to ask me any specific questions about the challenges you're facing.</p>
           </div>
@@ -249,7 +249,7 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
             </button>
             <input type="file" id="genie-file-input" multiple accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xls,.xlsx"/>
-            <textarea id="genie-msg-input" rows="1" placeholder="Enter your question or idea here"></textarea>
+            <textarea id="genie-msg-input" rows="1" placeholder="Enter your question or idea here" style="height:24px"></textarea>
             <button id="genie-send-btn" title="Send" disabled>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
@@ -483,7 +483,7 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
     const chat=chats.find(c=>c.id===activeChatId);
     chat.messages.push(userMsg);chat.updatedAt=Date.now();saveChats();
 
-    input.value='';input.style.height='auto';
+    input.value='';input.style.height='24px';input.style.overflowY='hidden';
     appendMessage(userMsg);addTypingIndicator();renderSidebar();
 
     try{
@@ -528,8 +528,11 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
     const main    = document.getElementById('genie-main');
 
     input.addEventListener('input',()=>{
-      input.style.height='auto';
-      input.style.height=Math.min(input.scrollHeight,120)+'px';
+      // Reset to single line height first, then grow to fit content
+      input.style.height = '24px';
+      const scrollH = input.scrollHeight;
+      input.style.height = Math.min(scrollH, 160) + 'px';
+      input.style.overflowY = scrollH > 160 ? 'auto' : 'hidden';
       sendBtn.disabled=!input.value.trim()&&!pendingFiles.length;
     });
     input.addEventListener('keydown',e=>{
