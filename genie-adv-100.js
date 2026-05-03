@@ -1,5 +1,5 @@
 /* ============================================================
-   GENIE Startup Advisor — Chat UI - v1.5.2 - Prompt box fix 2
+   GENIE Startup Advisor — Chat UI - v1.5.3 - Pre-release test
    Paste this script into your page (before </body>).
    ============================================================ */
 
@@ -225,18 +225,18 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
             <div class="genie-icon">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </div>
-            <h2>Hello! I'm Al, your startup advisor with the GENIE program.</h2>
+            <h2>Hello, I'm your startup advisor with the GENIE program.</h2>
             <p>I can help you with starting or growing your business here in Georgia. My support includes:</p>
             <ul style="text-align:center;list-style:none;margin:20px auto 20px;max-width:420px;line-height:1.8;font-size:16px;color:inherit">
-              <li>• Guiding you through the business startup process (from idea validation to early customer acquisition).</li>
+              <li>• Guiding you through the startup process, from idea validation to early customer acquisition</li>
               <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
-              <li>• Offering step-by-step instructions and practical templates.</li>
+              <li>• Providing step-by-step guidance and practical templates</li>
               <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
-              <li>• Explaining legal, financial, and organizational requirements specific to Georgia.</li>
+              <li>• Explaining legal, financial, and organizational requirements specific to Georgia</li>
               <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
-              <li>• Recommending local and state resources, including support programs and educational opportunities.</li>
+              <li>• Recommending local and state resources, including support programs and educational opportunities</li>
               <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
-              <li>• Helping you understand and access resources through organizations like the Business Innovation Group (BIG) at Georgia Southern University.</li>
+              <li>• Helping you access resources through organizations such as the Business Innovation Group (BIG) at Georgia Southern University</li>
             </ul>
             <p>To get started, could you share where you are in your startup journey? Or feel free to ask me any specific questions about the challenges you're facing.</p>
           </div>
@@ -255,7 +255,7 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
             </button>
           </div>
           <div id="genie-input-hint">
-            <a href="https://www.instayllc.com" style="color:inherit;text-decoration:none;cursor:pointer">Powered by INSTAY LLC</a>
+            <a href="https://www.georgiasouthern.edu/research/centers/business-innovation-group" style="color:inherit;text-decoration:none;cursor:pointer">Powered by BIG</a>
           </div>
         </div>
       </div>
