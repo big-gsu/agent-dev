@@ -1,5 +1,5 @@
 /* ============================================================
-   GENIE Startup Advisor — Chat UI - v1.5.0 - Prompt box layout
+   GENIE Startup Advisor — Chat UI - v1.5.1 - Prompt box fix
    Paste this script into your page (before </body>).
    ============================================================ */
 
@@ -11,7 +11,7 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
 
   const STORAGE_KEY = 'pda_chats';
   const THEME_KEY   = 'pda_theme';
-  const ASSISTANT   = 'GENIE STARTUP ADVISOR';
+  const ASSISTANT   = 'GENIE Startup Advisor';
   const MARKED_CDN  = 'https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js';
 
   let chats        = [];
@@ -225,18 +225,18 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
             <div class="genie-icon">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </div>
-            <h2>Hello, I'm your startup advisor with the GENIE program.</h2>
+            <h2>Hello! I'm Al, your startup advisor with the GENIE program.</h2>
             <p>I can help you with starting or growing your business here in Georgia. My support includes:</p>
             <ul style="text-align:center;list-style:none;margin:20px auto 20px;max-width:420px;line-height:1.8;font-size:16px;color:inherit">
-              <li>• Guiding you through the startup process, from idea validation to early customer acquisition</li>
+              <li>• Guiding you through the business startup process (from idea validation to early customer acquisition).</li>
               <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
-              <li>• Providing step-by-step guidance and practical templates</li>
+              <li>• Offering step-by-step instructions and practical templates.</li>
               <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
-              <li>• Explaining legal, financial, and organizational requirements specific to Georgia</li>
+              <li>• Explaining legal, financial, and organizational requirements specific to Georgia.</li>
               <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
-              <li>• Recommending local and state resources, including support programs and educational opportunities</li>
+              <li>• Recommending local and state resources, including support programs and educational opportunities.</li>
               <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
-              <li>• Helping you access resources through organizations such as the Business Innovation Group (BIG) at Georgia Southern University</li>
+              <li>• Helping you understand and access resources through organizations like the Business Innovation Group (BIG) at Georgia Southern University.</li>
             </ul>
             <p>To get started, could you share where you are in your startup journey? Or feel free to ask me any specific questions about the challenges you're facing.</p>
           </div>
@@ -249,13 +249,13 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
             </button>
             <input type="file" id="genie-file-input" multiple accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xls,.xlsx"/>
-            <textarea id="genie-msg-input" rows="1" placeholder="Enter your question or idea here" style="height:24px"></textarea>
+            <textarea id="genie-msg-input" rows="1" placeholder="Enter your question or idea here"></textarea>
             <button id="genie-send-btn" title="Send" disabled>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
           </div>
           <div id="genie-input-hint">
-            <a href="https://www.georgiasouthern.edu/research/centers/business-innovation-group" style="color:inherit;text-decoration:none;cursor:pointer">Powered by BIG</a>
+            <a href="https://www.instayllc.com" style="color:inherit;text-decoration:none;cursor:pointer">Powered by INSTAY LLC</a>
           </div>
         </div>
       </div>
@@ -574,6 +574,10 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
     if(localStorage.getItem(THEME_KEY)==='dark')document.body.classList.add('dark');
     renderSidebar();
     bindEvents();
+    // Correctly initialise textarea height after full render
+    const inp = document.getElementById('genie-msg-input');
+    inp.style.height = '24px';
+    inp.style.overflowY = 'hidden';
     // Start observing the app container — not window
     ro.observe(document.getElementById('genie-app'));
     // Run once immediately with current size
