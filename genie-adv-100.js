@@ -1,5 +1,5 @@
 /* ============================================================
-   GENIE Startup Advisor — Chat UI - v1.5.1 - Prompt box fix
+   GENIE Startup Advisor — Chat UI - v1.5.2 - Prompt box fix 2
    Paste this script into your page (before </body>).
    ============================================================ */
 
@@ -11,7 +11,7 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
 
   const STORAGE_KEY = 'pda_chats';
   const THEME_KEY   = 'pda_theme';
-  const ASSISTANT   = 'GENIE Startup Advisor';
+  const ASSISTANT   = 'GENIE STARTUP ADVISOR';
   const MARKED_CDN  = 'https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js';
 
   let chats        = [];
@@ -169,7 +169,7 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
     .genie-pending-chip button{background:none;border:none;cursor:pointer;color:inherit;padding:0;font-size:13px;line-height:1}
     #genie-input-box{display:flex;align-items:center;gap:8px;border:1px solid var(--border2);border-radius:var(--radius);padding:0 10px;background:var(--bg2);transition:border-color .15s;min-height:48px}
     #genie-input-box:focus-within{border-color:var(--accent)}
-    #genie-msg-input{flex:1;background:none;border:none;outline:none;font-size:16px;color:var(--text);resize:none;line-height:1.5;font-family:inherit;overflow-y:hidden;max-height:160px;padding:12px 0;box-sizing:border-box;display:block;vertical-align:middle}
+    #genie-msg-input{flex:1;background:none;border:none;outline:none;font-size:16px;color:var(--text);resize:none;line-height:24px;font-family:inherit;overflow-y:hidden;max-height:160px;padding:0;margin:0;box-sizing:content-box;display:block;height:24px;min-height:24px;align-self:center}
     #genie-msg-input::placeholder{color:var(--text3)}
     #genie-file-btn{background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:background .15s,color .15s;min-width:44px;min-height:44px;flex-shrink:0;align-self:center}
     #genie-file-btn:hover{background:var(--bg3);color:var(--text)}
@@ -249,7 +249,7 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
             </button>
             <input type="file" id="genie-file-input" multiple accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xls,.xlsx"/>
-            <textarea id="genie-msg-input" rows="1" placeholder="Enter your question or idea here"></textarea>
+            <textarea id="genie-msg-input" placeholder="Enter your question or idea here"></textarea>
             <button id="genie-send-btn" title="Send" disabled>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
@@ -576,8 +576,10 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
     bindEvents();
     // Correctly initialise textarea height after full render
     const inp = document.getElementById('genie-msg-input');
-    inp.style.height = '24px';
-    inp.style.overflowY = 'hidden';
+    requestAnimationFrame(()=>{
+      inp.style.height = '24px';
+      inp.style.overflowY = 'hidden';
+    });
     // Start observing the app container — not window
     ro.observe(document.getElementById('genie-app'));
     // Run once immediately with current size
