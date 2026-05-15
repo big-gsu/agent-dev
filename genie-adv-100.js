@@ -1,4 +1,28 @@
-(()=>{var J="https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f57-9cc5-5d9eda32b056/chat";(function(){let E="pda_chats",I="pda_theme",D="GENIE STARTUP ADVISOR",H="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js",s=[],d=null,c=[],w=!1,p=!1,B=document.createElement("style");B.textContent=`
+/* ============================================================
+   GENIE Startup Advisor — Chat UI - v1.5.4 - Fixed Markdown
+   Paste this script into your page (before </body>).
+   ============================================================ */
+
+// ── CONFIGURATION ────────────────────────────────────────────
+const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f57-9cc5-5d9eda32b056/chat';
+// ─────────────────────────────────────────────────────────────
+
+(function () {
+
+  const STORAGE_KEY = 'pda_chats';
+  const THEME_KEY   = 'pda_theme';
+  const ASSISTANT   = 'GENIE STARTUP ADVISOR';
+  const MARKED_CDN  = 'https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js';
+
+  let chats        = [];
+  let activeChatId = null;
+  let pendingFiles = [];
+  let isWaiting    = false;
+  let isMobile     = false; // driven by ResizeObserver, not window.innerWidth
+
+  // ── STYLES ─────────────────────────────────────────────────
+  const style = document.createElement('style');
+  style.textContent = `
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
       --bg:#ffffff;--bg2:#f7f7f5;--bg3:#efefed;
@@ -22,7 +46,7 @@
     html,body{height:100%;width:100%;margin:0;padding:0;overflow:hidden}
     body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px}
 
-    /* \u2500\u2500 APP SHELL \u2500\u2500 */
+    /* ── APP SHELL ── */
     #genie-app{
       display:flex;
       width:100%;
@@ -32,7 +56,7 @@
       position:relative;
     }
 
-    /* \u2500\u2500 SIDEBAR \u2500\u2500 */
+    /* ── SIDEBAR ── */
     #genie-sidebar{
       width:var(--sidebar);
       background:var(--bg2);
@@ -59,7 +83,7 @@
     #genie-theme-btn{background:none;border:1px solid var(--border2);color:var(--text2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;width:100%}
     #genie-theme-btn:hover{background:var(--bg3)}
 
-    /* Sidebar \u2014 mobile state (toggled via JS class, not media query) */
+    /* Sidebar — mobile state (toggled via JS class, not media query) */
     #genie-app.is-mobile #genie-sidebar{
       position:absolute;
       top:0;left:0;
@@ -71,7 +95,7 @@
       box-shadow:4px 0 24px rgba(0,0,0,.18);
     }
 
-    /* \u2500\u2500 BACKDROP \u2500\u2500 */
+    /* ── BACKDROP ── */
     #genie-backdrop{
       display:none;
       position:absolute;
@@ -81,7 +105,7 @@
     }
     #genie-app.is-mobile #genie-backdrop.open{display:block}
 
-    /* \u2500\u2500 HAMBURGER \u2500\u2500 */
+    /* ── HAMBURGER ── */
     #genie-menu-btn{
       display:none;
       background:none;
@@ -98,12 +122,12 @@
     #genie-menu-btn:hover{background:var(--bg3)}
     #genie-app.is-mobile #genie-menu-btn{display:flex}
 
-    /* \u2500\u2500 MAIN \u2500\u2500 */
+    /* ── MAIN ── */
     #genie-main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
     #genie-topbar{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--bg);flex-shrink:0}
     #genie-topbar h1{font-size:16px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-    /* \u2500\u2500 MESSAGES \u2500\u2500 */
+    /* ── MESSAGES ── */
     #genie-messages{flex:1;overflow-y:auto;padding:24px 0;-webkit-overflow-scrolling:touch;min-height:0}
     .genie-msg-row{display:flex;padding:0 20px;margin-bottom:20px;gap:10px;align-items:flex-start}
     .genie-msg-row.user{flex-direction:row-reverse}
@@ -138,7 +162,7 @@
     #genie-app.is-mobile #genie-empty-state p,
     #genie-app.is-mobile #genie-empty-state ul{font-size:13px}
 
-    /* \u2500\u2500 INPUT AREA \u2500\u2500 */
+    /* ── INPUT AREA ── */
     #genie-input-area{padding:16px 20px;border-top:1px solid var(--border);background:var(--bg);flex-shrink:0}
     #genie-attach-preview-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
     .genie-pending-chip{background:var(--accent-bg);color:var(--accent);border-radius:6px;padding:3px 8px;font-size:12px;display:flex;align-items:center;gap:5px}
@@ -163,9 +187,13 @@
     #genie-app.is-mobile #genie-topbar{padding:8px 12px}
     #genie-app.is-mobile #genie-topbar h1{font-size:15px}
 
-    /* \u2500\u2500 RENAME INPUT \u2500\u2500 */
+    /* ── RENAME INPUT ── */
     .genie-rename-input{width:100%;font-size:13px;font-weight:500;color:var(--text);background:var(--bg);border:1px solid var(--accent);border-radius:4px;padding:1px 5px;outline:none;font-family:inherit}
-  `,document.head.appendChild(B),document.body.innerHTML=`
+  `;
+  document.head.appendChild(style);
+
+  // ── HTML ───────────────────────────────────────────────────
+  document.body.innerHTML = `
     <div id="genie-app">
       <div id="genie-backdrop"></div>
 
@@ -189,7 +217,7 @@
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
           <img src="https://raw.githubusercontent.com/big-gsu/gfx/main/chaticon-g1.png" width="32" height="32" style="object-fit:contain;border-radius:4px;flex-shrink:0"/>
-          <h1 id="genie-chat-title">${D}</h1>
+          <h1 id="genie-chat-title">${ASSISTANT}</h1>
         </div>
 
         <div id="genie-messages">
@@ -200,15 +228,15 @@
             <h2>Hello, I'm your startup advisor with the GENIE program.</h2>
             <p>I can help you with starting or growing your business here in Georgia. My support includes:</p>
             <ul style="text-align:center;list-style:none;margin:20px auto 20px;max-width:420px;line-height:1.8;font-size:16px;color:inherit">
-              <li>\u2022 Guiding you through the startup process, from idea validation to early customer acquisition</li>
-              <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">\u2022 \u2022 \u2022</li>
-              <li>\u2022 Providing step-by-step guidance and practical templates</li>
-              <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">\u2022 \u2022 \u2022</li>
-              <li>\u2022 Explaining legal, financial, and organizational requirements specific to Georgia</li>
-              <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">\u2022 \u2022 \u2022</li>
-              <li>\u2022 Recommending local and state resources, including support programs and educational opportunities</li>
-              <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">\u2022 \u2022 \u2022</li>
-              <li>\u2022 Helping you access resources through organizations such as the Business Innovation Group (BIG) at Georgia Southern University</li>
+              <li>• Guiding you through the startup process, from idea validation to early customer acquisition</li>
+              <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
+              <li>• Providing step-by-step guidance and practical templates</li>
+              <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
+              <li>• Explaining legal, financial, and organizational requirements specific to Georgia</li>
+              <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
+              <li>• Recommending local and state resources, including support programs and educational opportunities</li>
+              <li style="letter-spacing:6px;font-size:10px;color:var(--text3)">• • •</li>
+              <li>• Helping you access resources through organizations such as the Business Innovation Group (BIG) at Georgia Southern University</li>
             </ul>
             <p>To get started, could you share where you are in your startup journey? Or feel free to ask me any specific questions about the challenges you're facing.</p>
           </div>
@@ -232,11 +260,325 @@
         </div>
       </div>
     </div>
-  `;function L(e){let t=document.getElementById("genie-app");e<=768?p||(p=!0,t.classList.add("is-mobile"),document.getElementById("genie-sidebar").classList.remove("open"),document.getElementById("genie-backdrop").classList.remove("open")):p&&(p=!1,t.classList.remove("is-mobile"),document.getElementById("genie-sidebar").classList.remove("open"),document.getElementById("genie-backdrop").classList.remove("open"))}let C=new ResizeObserver(e=>{for(let t of e)L(t.contentRect.width)});function f(e){return e.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}function z(e){let t=e.split(".").pop().toLowerCase();return["jpg","jpeg","png","gif","webp","svg"].includes(t)?"\u{1F5BC}":t==="pdf"?"\u{1F4C4}":["doc","docx"].includes(t)?"\u{1F4DD}":["xls","xlsx","csv"].includes(t)?"\u{1F4CA}":"\u{1F4CE}"}function N(e){let t=new Date(e),n=(new Date-t)/1e3;return n<60?"Just now":n<3600?Math.floor(n/60)+"m ago":n<86400?Math.floor(n/3600)+"h ago":t.toLocaleDateString(void 0,{month:"short",day:"numeric"})}function $(){try{s=JSON.parse(localStorage.getItem(E)||"[]")}catch{s=[]}}function m(){localStorage.setItem(E,JSON.stringify(s))}function R(){document.getElementById("genie-sidebar").classList.add("open"),document.getElementById("genie-backdrop").classList.add("open")}function x(){document.getElementById("genie-sidebar").classList.remove("open"),document.getElementById("genie-backdrop").classList.remove("open")}function g(){let e=document.getElementById("genie-chat-list");e.innerHTML="",[...s].sort((t,i)=>i.updatedAt-t.updatedAt).forEach(t=>{let i=document.createElement("div");i.className="genie-chat-item"+(t.id===d?" active":""),i.innerHTML=`
-        <button class="genie-chat-item-del" title="Delete" data-id="${t.id}">\u2715</button>
-        <div class="genie-chat-item-title" title="Double-click to rename">${f(t.title)}</div>
-        <div class="genie-chat-item-date">${N(t.updatedAt)}</div>`,i.addEventListener("click",n=>{if(n.target.dataset.id){G(n.target.dataset.id);return}n.target.classList.contains("genie-chat-item-title")||O(t.id)}),i.querySelector(".genie-chat-item-title").addEventListener("dblclick",n=>{n.stopPropagation(),j(t,n.target)}),e.appendChild(i)})}function j(e,t){let i=e.title,n=document.createElement("input");n.type="text",n.value=i,n.className="genie-rename-input",t.replaceWith(n),n.focus(),n.select();function r(){let a=n.value.trim();e.title=a||i,m(),g()}function o(){e.title=i,g()}n.addEventListener("keydown",a=>{a.key==="Enter"&&(a.preventDefault(),r()),a.key==="Escape"&&(a.preventDefault(),o())}),n.addEventListener("blur",r)}function P(){d=null,k([]),g(),p&&x(),document.getElementById("genie-msg-input").focus()}function O(e){d=e;let t=s.find(n=>n.id===e);if(!t)return;k(t.messages),g(),p&&x();let i=document.getElementById("genie-messages");i.scrollTop=i.scrollHeight}function G(e){s=s.filter(t=>t.id!==e),m(),d===e&&(d=null,k([])),g()}function k(e){let t=document.getElementById("genie-messages");if(t.innerHTML="",!e.length){t.innerHTML=`<div id="genie-empty-state">
+  `;
+
+  // ── RESIZE OBSERVER — drives mobile vs desktop ─────────────
+  function applyLayout(width) {
+    const app = document.getElementById('genie-app');
+    if (width <= 768) {
+      if (!isMobile) {
+        isMobile = true;
+        app.classList.add('is-mobile');
+        document.getElementById('genie-sidebar').classList.remove('open');
+        document.getElementById('genie-backdrop').classList.remove('open');
+      }
+    } else {
+      if (isMobile) {
+        isMobile = false;
+        app.classList.remove('is-mobile');
+        document.getElementById('genie-sidebar').classList.remove('open');
+        document.getElementById('genie-backdrop').classList.remove('open');
+      }
+    }
+  }
+
+  const ro = new ResizeObserver(entries => {
+    for (const entry of entries) applyLayout(entry.contentRect.width);
+  });
+
+  // ── HELPERS ────────────────────────────────────────────────
+  function escHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function fileIcon(name){
+    const ext=name.split('.').pop().toLowerCase();
+    if(['jpg','jpeg','png','gif','webp','svg'].includes(ext))return'🖼';
+    if(ext==='pdf')return'📄';
+    if(['doc','docx'].includes(ext))return'📝';
+    if(['xls','xlsx','csv'].includes(ext))return'📊';
+    return'📎';
+  }
+  function formatDate(ts){
+    const d=new Date(ts),now=new Date();
+    const diff=(now-d)/1e3;
+    if(diff<60)return'Just now';
+    if(diff<3600)return Math.floor(diff/60)+'m ago';
+    if(diff<86400)return Math.floor(diff/3600)+'h ago';
+    return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+  }
+
+  // ── PERSISTENCE ────────────────────────────────────────────
+  function loadChats(){try{chats=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')}catch(e){chats=[]}}
+  function saveChats(){localStorage.setItem(STORAGE_KEY,JSON.stringify(chats))}
+
+  // ── SIDEBAR TOGGLE ─────────────────────────────────────────
+  function openSidebar(){
+    document.getElementById('genie-sidebar').classList.add('open');
+    document.getElementById('genie-backdrop').classList.add('open');
+  }
+  function closeSidebar(){
+    document.getElementById('genie-sidebar').classList.remove('open');
+    document.getElementById('genie-backdrop').classList.remove('open');
+  }
+
+  // ── SIDEBAR RENDER ─────────────────────────────────────────
+  function renderSidebar(){
+    const list=document.getElementById('genie-chat-list');
+    list.innerHTML='';
+    [...chats].sort((a,b)=>b.updatedAt-a.updatedAt).forEach(chat=>{
+      const div=document.createElement('div');
+      div.className='genie-chat-item'+(chat.id===activeChatId?' active':'');
+      div.innerHTML=`
+        <button class="genie-chat-item-del" title="Delete" data-id="${chat.id}">✕</button>
+        <div class="genie-chat-item-title" title="Double-click to rename">${escHtml(chat.title)}</div>
+        <div class="genie-chat-item-date">${formatDate(chat.updatedAt)}</div>`;
+      div.addEventListener('click',e=>{
+        if(e.target.dataset.id){deleteChat(e.target.dataset.id);return;}
+        if(e.target.classList.contains('genie-chat-item-title'))return;
+        loadChat(chat.id);
+      });
+      div.querySelector('.genie-chat-item-title').addEventListener('dblclick',e=>{
+        e.stopPropagation();
+        startRename(chat,e.target);
+      });
+      list.appendChild(div);
+    });
+  }
+
+  function startRename(chat,titleEl){
+    const prev=chat.title;
+    const inp=document.createElement('input');
+    inp.type='text';inp.value=prev;inp.className='genie-rename-input';
+    titleEl.replaceWith(inp);inp.focus();inp.select();
+    function commit(){const next=inp.value.trim();chat.title=next||prev;saveChats();renderSidebar();}
+    function cancel(){chat.title=prev;renderSidebar();}
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){e.preventDefault();commit();}
+      if(e.key==='Escape'){e.preventDefault();cancel();}
+    });
+    inp.addEventListener('blur',commit);
+  }
+
+  // ── CHAT MANAGEMENT ────────────────────────────────────────
+  function newChat(){
+    activeChatId=null;
+    renderMessages([]);
+    renderSidebar();
+    if(isMobile)closeSidebar();
+    document.getElementById('genie-msg-input').focus();
+  }
+
+  function loadChat(id){
+    activeChatId=id;
+    const chat=chats.find(c=>c.id===id);
+    if(!chat)return;
+    renderMessages(chat.messages);
+    renderSidebar();
+    if(isMobile)closeSidebar();
+    const msgs=document.getElementById('genie-messages');
+    msgs.scrollTop=msgs.scrollHeight;
+  }
+
+  function deleteChat(id){
+    chats=chats.filter(c=>c.id!==id);
+    saveChats();
+    if(activeChatId===id){activeChatId=null;renderMessages([]);}
+    renderSidebar();
+  }
+
+  // ── MESSAGES ───────────────────────────────────────────────
+  function renderMessages(messages){
+    const el=document.getElementById('genie-messages');
+    el.innerHTML='';
+    if(!messages.length){
+      el.innerHTML=`<div id="genie-empty-state">
         <div class="genie-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
         <h2>How can I help you today?</h2>
         <p>Type a message below to get started. You can also attach files, images, or PDFs.</p>
-      </div>`;return}e.forEach(i=>v(i,!1))}function v(e,t=!0){document.getElementById("genie-empty-state")?.remove();let i=document.getElementById("genie-messages"),n=document.createElement("div");n.className="genie-msg-row "+e.role;let r="";if(e.files&&e.files.length){let a=e.role==="bot"?"bot-chip":"";r=`<div class="genie-attach-preview">${e.files.map(l=>`<span class="genie-attach-chip ${a}">${z(l.name)} ${f(l.name)}</span>`).join("")}</div>`}let o=e.role==="bot"?window.marked.parse(e.content||""):f(e.content||"").replace(/\n/g,"<br>");return n.innerHTML=`<div class="genie-avatar ${e.role}">${e.role==="user"?"You":"AI"}</div><div class="genie-bubble ${e.role}">${r}${o}</div>`,i.appendChild(n),t&&(i.scrollTop=i.scrollHeight),n}function Y(){document.getElementById("genie-empty-state")?.remove();let e=document.getElementById("genie-messages"),t=document.createElement("div");t.id="genie-typing-row",t.className="genie-msg-row bot",t.innerHTML='<div class="genie-avatar bot">AI</div><div class="genie-bubble bot"><div class="genie-typing"><span></span><span></span><span></span></div></div>',e.appendChild(t),e.scrollTop=e.scrollHeight}function M(){document.getElementById("genie-typing-row")?.remove()}async function q(e){return new Promise((t,i)=>{let n=new FileReader;n.onload=()=>t(n.result.split(",")[1]),n.onerror=i,n.readAsDataURL(e)})}function S(e){c.push(e);let t=document.getElementById("genie-attach-preview-bar"),i=document.createElement("div");i.className="genie-pending-chip";let n=f(e.name);i.innerHTML=`${z(e.name)} <span>${n}</span> <button>\u2715</button>`,i.querySelector("button").addEventListener("click",()=>U(e.name,i)),t.appendChild(i),document.getElementById("genie-send-btn").disabled=!1}function U(e,t){c=c.filter(n=>n.name!==e),t.remove();let i=document.getElementById("genie-msg-input");document.getElementById("genie-send-btn").disabled=!i.value.trim()&&!c.length}async function T(){if(w)return;let e=document.getElementById("genie-msg-input"),t=document.getElementById("genie-send-btn"),i=e.value.trim();if(!i&&!c.length)return;w=!0,t.disabled=!0;let n=c.slice();c=[],document.getElementById("genie-attach-preview-bar").innerHTML="";let r={role:"user",content:i,files:n.map(a=>({name:a.name,type:a.type})),ts:Date.now()};if(!d){let a="chat_"+Date.now(),l=i?i.slice(0,40)+(i.length>40?"\u2026":""):"New conversation";s.unshift({id:a,title:l,messages:[],createdAt:Date.now(),updatedAt:Date.now()}),d=a}let o=s.find(a=>a.id===d);o.messages.push(r),o.updatedAt=Date.now(),m(),e.value="",e.style.height="24px",e.style.overflowY="hidden",v(r),Y(),g();try{let a=await Promise.all(n.map(async h=>({name:h.name,type:h.type,size:h.size,data:await q(h)}))),l={chatInput:i,sessionId:d,action:"sendMessage",files:a,timestamp:new Date().toISOString()},u=await fetch(J,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(l)}),y="";if(u.ok)if((u.headers.get("content-type")||"").includes("application/json")){let b=await u.json();y=b.output||b.text||b.message||b.reply||b.response||JSON.stringify(b)}else y=await u.text();else y=`\u26A0\uFE0F Webhook error: ${u.status} ${u.statusText}`;M();let A={role:"bot",content:y,ts:Date.now()};o.messages.push(A),o.updatedAt=Date.now(),m(),v(A),g()}catch(a){M();let l={role:"bot",content:`\u26A0\uFE0F Could not reach webhook: ${a.message}`,ts:Date.now()};o.messages.push(l),m(),v(l)}w=!1,t.disabled=!1,e.focus()}function _(){let e=document.getElementById("genie-msg-input"),t=document.getElementById("genie-send-btn"),i=document.getElementById("genie-file-btn"),n=document.getElementById("genie-file-input"),r=document.getElementById("genie-main");e.addEventListener("input",()=>{e.style.height="24px";let o=e.scrollHeight;e.style.height=Math.min(o,160)+"px",e.style.overflowY=o>160?"auto":"hidden",t.disabled=!e.value.trim()&&!c.length}),e.addEventListener("keydown",o=>{o.key==="Enter"&&!o.shiftKey&&(o.preventDefault(),T())}),t.addEventListener("click",T),i.addEventListener("click",()=>n.click()),n.addEventListener("change",o=>{[...o.target.files].forEach(a=>S(a)),o.target.value=""}),r.addEventListener("dragover",o=>o.preventDefault()),r.addEventListener("drop",o=>{o.preventDefault(),[...o.dataTransfer.files].forEach(a=>S(a))}),document.getElementById("genie-menu-btn").addEventListener("click",()=>{document.getElementById("genie-sidebar").classList.contains("open")?x():R()}),document.getElementById("genie-backdrop").addEventListener("click",x),document.getElementById("genie-new-chat-btn").addEventListener("click",P),document.getElementById("genie-theme-btn").addEventListener("click",()=>{document.body.classList.toggle("dark"),localStorage.setItem(I,document.body.classList.contains("dark")?"dark":"light")})}function F(e){if(window.marked)return e();let t=document.createElement("script");t.src=H,t.onload=e,document.head.appendChild(t)}F(()=>{$(),localStorage.getItem(I)==="dark"&&document.body.classList.add("dark"),g(),_();let e=document.getElementById("genie-msg-input");requestAnimationFrame(()=>{e.style.height="24px",e.style.overflowY="hidden"}),C.observe(document.getElementById("genie-app")),L(document.getElementById("genie-app").offsetWidth)})})();})();
+      </div>`;
+      return;
+    }
+    messages.forEach(m=>appendMessage(m,false));
+  }
+
+  function appendMessage(msg,scroll=true){
+    document.getElementById('genie-empty-state')?.remove();
+    const el=document.getElementById('genie-messages');
+    const row=document.createElement('div');
+    row.className='genie-msg-row '+msg.role;
+    let attachHtml='';
+    if(msg.files&&msg.files.length){
+      const cls=msg.role==='bot'?'bot-chip':'';
+      attachHtml=`<div class="genie-attach-preview">${msg.files.map(f=>`<span class="genie-attach-chip ${cls}">${fileIcon(f.name)} ${escHtml(f.name)}</span>`).join('')}</div>`;
+    }
+    const contentHtml=msg.role==='bot'?window.marked.parse(msg.content||''):escHtml(msg.content||'').replace(/\n/g,'<br>');
+    row.innerHTML=`<div class="genie-avatar ${msg.role}">${msg.role==='user'?'You':'AI'}</div><div class="genie-bubble ${msg.role}">${attachHtml}${contentHtml}</div>`;
+    el.appendChild(row);
+    if(scroll)el.scrollTop=el.scrollHeight;
+    return row;
+  }
+
+  function addTypingIndicator(){
+    document.getElementById('genie-empty-state')?.remove();
+    const el=document.getElementById('genie-messages');
+    const row=document.createElement('div');
+    row.id='genie-typing-row';row.className='genie-msg-row bot';
+    row.innerHTML=`<div class="genie-avatar bot">AI</div><div class="genie-bubble bot"><div class="genie-typing"><span></span><span></span><span></span></div></div>`;
+    el.appendChild(row);el.scrollTop=el.scrollHeight;
+  }
+  function removeTypingIndicator(){document.getElementById('genie-typing-row')?.remove();}
+
+  // ── FILE HANDLING ──────────────────────────────────────────
+  async function fileToBase64(file){
+    return new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=()=>res(r.result.split(',')[1]);
+      r.onerror=rej;
+      r.readAsDataURL(file);
+    });
+  }
+
+  function addPendingFile(file){
+    pendingFiles.push(file);
+    const bar=document.getElementById('genie-attach-preview-bar');
+    const chip=document.createElement('div');
+    chip.className='genie-pending-chip';
+    const safeName=escHtml(file.name);
+    chip.innerHTML=`${fileIcon(file.name)} <span>${safeName}</span> <button>✕</button>`;
+    chip.querySelector('button').addEventListener('click',()=>removePendingFile(file.name,chip));
+    bar.appendChild(chip);
+    document.getElementById('genie-send-btn').disabled=false;
+  }
+
+  function removePendingFile(name,chip){
+    pendingFiles=pendingFiles.filter(f=>f.name!==name);
+    chip.remove();
+    const inp=document.getElementById('genie-msg-input');
+    document.getElementById('genie-send-btn').disabled=!inp.value.trim()&&!pendingFiles.length;
+  }
+
+  // ── SEND MESSAGE ───────────────────────────────────────────
+  async function sendMessage(){
+    if(isWaiting)return;
+    const input=document.getElementById('genie-msg-input');
+    const sendBtn=document.getElementById('genie-send-btn');
+    const text=input.value.trim();
+    if(!text&&!pendingFiles.length)return;
+
+    isWaiting=true;sendBtn.disabled=true;
+
+    const files=pendingFiles.slice();
+    pendingFiles=[];
+    document.getElementById('genie-attach-preview-bar').innerHTML='';
+
+    const userMsg={role:'user',content:text,files:files.map(f=>({name:f.name,type:f.type})),ts:Date.now()};
+
+    if(!activeChatId){
+      const id='chat_'+Date.now();
+      const title=text?text.slice(0,40)+(text.length>40?'…':''):'New conversation';
+      chats.unshift({id,title,messages:[],createdAt:Date.now(),updatedAt:Date.now()});
+      activeChatId=id;
+    }
+    const chat=chats.find(c=>c.id===activeChatId);
+    chat.messages.push(userMsg);chat.updatedAt=Date.now();saveChats();
+
+    input.value='';input.style.height='24px';input.style.overflowY='hidden';
+    appendMessage(userMsg);addTypingIndicator();renderSidebar();
+
+    try{
+      const filesPayload=await Promise.all(files.map(async f=>({
+        name:f.name,type:f.type,size:f.size,data:await fileToBase64(f)
+      })));
+      const payload={
+        chatInput:text,
+        sessionId:activeChatId,
+        action:'sendMessage',
+        files:filesPayload,
+        timestamp:new Date().toISOString()
+      };
+      const resp=await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      let reply='';
+      if(resp.ok){
+        const ct=resp.headers.get('content-type')||'';
+        if(ct.includes('application/json')){
+          const data=await resp.json();
+          // ── FIX v1.5.4: Chat Trigger returns an array; unwrap before extracting ──
+          const item=Array.isArray(data)?data[0]:data;
+          reply=item.output??item.text??item.message??item.reply??item.response??JSON.stringify(data);
+        }else{reply=await resp.text();}
+      }else{reply=`⚠️ Webhook error: ${resp.status} ${resp.statusText}`;}
+      removeTypingIndicator();
+      const botMsg={role:'bot',content:reply,ts:Date.now()};
+      chat.messages.push(botMsg);chat.updatedAt=Date.now();saveChats();
+      appendMessage(botMsg);renderSidebar();
+    }catch(e){
+      removeTypingIndicator();
+      const botMsg={role:'bot',content:`⚠️ Could not reach webhook: ${e.message}`,ts:Date.now()};
+      chat.messages.push(botMsg);saveChats();appendMessage(botMsg);
+    }
+
+    isWaiting=false;sendBtn.disabled=false;input.focus();
+  }
+
+  // ── EVENTS ─────────────────────────────────────────────────
+  function bindEvents(){
+    const input   = document.getElementById('genie-msg-input');
+    const sendBtn = document.getElementById('genie-send-btn');
+    const fileBtn = document.getElementById('genie-file-btn');
+    const fileInp = document.getElementById('genie-file-input');
+    const main    = document.getElementById('genie-main');
+
+    input.addEventListener('input',()=>{
+      input.style.height = '24px';
+      const scrollH = input.scrollHeight;
+      input.style.height = Math.min(scrollH, 160) + 'px';
+      input.style.overflowY = scrollH > 160 ? 'auto' : 'hidden';
+      sendBtn.disabled=!input.value.trim()&&!pendingFiles.length;
+    });
+    input.addEventListener('keydown',e=>{
+      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}
+    });
+    sendBtn.addEventListener('click',sendMessage);
+    fileBtn.addEventListener('click',()=>fileInp.click());
+    fileInp.addEventListener('change',e=>{
+      [...e.target.files].forEach(f=>addPendingFile(f));
+      e.target.value='';
+    });
+    main.addEventListener('dragover',e=>e.preventDefault());
+    main.addEventListener('drop',e=>{
+      e.preventDefault();
+      [...e.dataTransfer.files].forEach(f=>addPendingFile(f));
+    });
+    document.getElementById('genie-menu-btn').addEventListener('click',()=>{
+      const sidebar=document.getElementById('genie-sidebar');
+      sidebar.classList.contains('open')?closeSidebar():openSidebar();
+    });
+    document.getElementById('genie-backdrop').addEventListener('click',closeSidebar);
+    document.getElementById('genie-new-chat-btn').addEventListener('click',newChat);
+    document.getElementById('genie-theme-btn').addEventListener('click',()=>{
+      document.body.classList.toggle('dark');
+      localStorage.setItem(THEME_KEY,document.body.classList.contains('dark')?'dark':'light');
+    });
+  }
+
+  // ── LOAD MARKED & INIT ─────────────────────────────────────
+  function loadMarked(cb){
+    if(window.marked)return cb();
+    const s=document.createElement('script');
+    s.src=MARKED_CDN;s.onload=cb;
+    document.head.appendChild(s);
+  }
+
+  loadMarked(()=>{
+    loadChats();
+    if(localStorage.getItem(THEME_KEY)==='dark')document.body.classList.add('dark');
+    renderSidebar();
+    bindEvents();
+    const inp = document.getElementById('genie-msg-input');
+    requestAnimationFrame(()=>{
+      inp.style.height = '24px';
+      inp.style.overflowY = 'hidden';
+    });
+    ro.observe(document.getElementById('genie-app'));
+    applyLayout(document.getElementById('genie-app').offsetWidth);
+  });
+
+})();
