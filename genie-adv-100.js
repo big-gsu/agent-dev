@@ -1,5 +1,5 @@
 /* ============================================================
-   GENIE Startup Advisor — Chat UI - v1.5.4 - Fixed Markdown
+   GENIE Startup Advisor — Chat UI - v1.7.0 - MD Fix (RTC)
    Paste this script into your page (before </body>).
    ============================================================ */
 
@@ -138,7 +138,11 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
     .genie-bubble.user{background:var(--user-bg);color:var(--user-text);border-bottom-right-radius:4px}
     .genie-bubble.bot{background:var(--bot-bg);color:var(--bot-text);border-bottom-left-radius:4px}
     .genie-bubble p{margin-bottom:.6em}.genie-bubble p:last-child{margin-bottom:0}
-    .genie-bubble ul,.genie-bubble ol{margin:.4em 0 .4em 1.4em}
+    .genie-bubble ul,.genie-bubble ol{margin:.6em 0 .6em 0;padding-left:1.6em;list-style-position:outside}
+    .genie-bubble ul{list-style-type:disc}
+    .genie-bubble ol{list-style-type:decimal}
+    .genie-bubble li{display:list-item;margin:.25em 0;padding-left:.2em}
+    .genie-bubble li p{margin:.2em 0}
     .genie-bubble code{background:rgba(0,0,0,.08);padding:1px 5px;border-radius:4px;font-size:12px;font-family:monospace}
     .genie-bubble pre{background:rgba(0,0,0,.1);padding:10px;border-radius:8px;overflow-x:auto;margin:.6em 0}
     .genie-bubble pre code{background:none;padding:0}
@@ -269,6 +273,7 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
       if (!isMobile) {
         isMobile = true;
         app.classList.add('is-mobile');
+        // ensure sidebar starts closed
         document.getElementById('genie-sidebar').classList.remove('open');
         document.getElementById('genie-backdrop').classList.remove('open');
       }
@@ -283,7 +288,9 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
   }
 
   const ro = new ResizeObserver(entries => {
-    for (const entry of entries) applyLayout(entry.contentRect.width);
+    for (const entry of entries) {
+      applyLayout(entry.contentRect.width);
+    }
   });
 
   // ── HELPERS ────────────────────────────────────────────────
@@ -409,7 +416,8 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
       const cls=msg.role==='bot'?'bot-chip':'';
       attachHtml=`<div class="genie-attach-preview">${msg.files.map(f=>`<span class="genie-attach-chip ${cls}">${fileIcon(f.name)} ${escHtml(f.name)}</span>`).join('')}</div>`;
     }
-    const contentHtml=msg.role==='bot'?window.marked.parse(msg.content||''):escHtml(msg.content||'').replace(/\n/g,'<br>');
+    const rawContent=msg.content==null?'':String(msg.content);
+    const contentHtml=msg.role==='bot'?window.marked.parse(rawContent):escHtml(rawContent).replace(/\n/g,'<br>');
     row.innerHTML=`<div class="genie-avatar ${msg.role}">${msg.role==='user'?'You':'AI'}</div><div class="genie-bubble ${msg.role}">${attachHtml}${contentHtml}</div>`;
     el.appendChild(row);
     if(scroll)el.scrollTop=el.scrollHeight;
@@ -500,9 +508,7 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
         const ct=resp.headers.get('content-type')||'';
         if(ct.includes('application/json')){
           const data=await resp.json();
-          // ── FIX v1.5.4: Chat Trigger returns an array; unwrap before extracting ──
-          const item=Array.isArray(data)?data[0]:data;
-          reply=item.output??item.text??item.message??item.reply??item.response??JSON.stringify(data);
+          reply=data.output||data.text||data.message||data.reply||data.response||JSON.stringify(data);
         }else{reply=await resp.text();}
       }else{reply=`⚠️ Webhook error: ${resp.status} ${resp.statusText}`;}
       removeTypingIndicator();
@@ -527,6 +533,7 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
     const main    = document.getElementById('genie-main');
 
     input.addEventListener('input',()=>{
+      // Reset to single line height first, then grow to fit content
       input.style.height = '24px';
       const scrollH = input.scrollHeight;
       input.style.height = Math.min(scrollH, 160) + 'px';
@@ -568,16 +575,20 @@ const WEBHOOK_URL = 'https://n8n.srv1194916.hstgr.cloud/webhook/64bfc1a9-76f7-4f
   }
 
   loadMarked(()=>{
+    window.marked.setOptions({gfm:true,breaks:true});
     loadChats();
     if(localStorage.getItem(THEME_KEY)==='dark')document.body.classList.add('dark');
     renderSidebar();
     bindEvents();
+    // Correctly initialise textarea height after full render
     const inp = document.getElementById('genie-msg-input');
     requestAnimationFrame(()=>{
       inp.style.height = '24px';
       inp.style.overflowY = 'hidden';
     });
+    // Start observing the app container — not window
     ro.observe(document.getElementById('genie-app'));
+    // Run once immediately with current size
     applyLayout(document.getElementById('genie-app').offsetWidth);
   });
 
